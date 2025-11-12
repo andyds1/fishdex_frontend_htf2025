@@ -1,4 +1,4 @@
-import { getAllCatches } from '../data/fetcher.js';
+import {getFishByDevice} from '../data/fetcher.js';
 
 export function goBack() {
     window.location.href = 'index.html';
@@ -9,7 +9,7 @@ async function viewFishDetails(id) {
 }
 
 export async function init() {
-    const catches = await getAllCatches();
+    const catches = await getFishByDevice();
     const galleryGrid = document.getElementById('galleryGrid');
     
     if (!catches || catches.length === 0) {

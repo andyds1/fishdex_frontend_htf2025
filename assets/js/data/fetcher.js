@@ -1,284 +1,201 @@
-const API_BASE_URL = 'https://your-backend-api.com/api';
+// assets/js/fetcher.js
 
-const MOCK_DATA = {
-    recentCatches: [
-        {
-            id: 1,
-            name: 'Clownfish',
-            image: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23FF8C42" width="100" height="100"/><circle fill="%23fff" cx="35" cy="40" r="8"/><circle fill="%23000" cx="35" cy="40" r="4"/></svg>',
-            time: '1h ago'
-        },
-        {
-            id: 2,
-            name: 'Unicorn fish',
-            image: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%234A90E2" width="100" height="100"/><circle fill="%23fff" cx="35" cy="40" r="8"/><circle fill="%23000" cx="35" cy="40" r="4"/></svg>',
-            time: '1h ago'
-        },
-        {
-            id: 3,
-            name: 'Moorish Idol',
-            image: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23F5D547" width="100" height="100"/><rect fill="%23000" x="20" y="0" width="15" height="100"/><rect fill="%23000" x="50" y="0" width="15" height="100"/></svg>',
-            time: '2h ago'
-        }
-    ],
-    fishDetails: {
-        1: {
-            fish: {
-                _id: "1",
-                name: "Clownfish",
-                family: "Pomacentridae",
-                minSize: 8,
-                maxSize: 11,
-                waterType: "Saltwater",
-                description: "Clownfish are small, brightly colored fish known for their symbiotic relationship with sea anemones. They have a stocky body with a rounded tail fin and are often found in shallow waters of coral reefs.",
-                colorDescription: "Clownfish are easily recognizable by their vibrant orange bodies with white bands outlined in black. The patterns can vary slightly, but the striking contrast of orange, white, and black is consistent.",
-                depthRangeMin: 1,
-                depthRangeMax: 15,
-                environment: "Coral reefs",
-                region: "Indo-Pacific, including the Red Sea and Great Barrier Reef",
-                conservationStatus: "Least Concern",
-                consStatusDescription: "Clownfish populations are stable, but they face threats from habitat loss due to coral reef degradation and the aquarium trade.",
-                aiAccuracy: 95,
-                captureTimestamp: new Date().toISOString()
-            },
-            imageUrl: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23FF8C42" width="100" height="100"/><circle fill="%23fff" cx="35" cy="40" r="8"/><circle fill="%23000" cx="35" cy="40" r="4"/></svg>',
-            timestamp: new Date().toISOString(),
-            fishId: "1"
-        },
-        2: {
-            fish: {
-                _id: "2",
-                name: "Blue Tang",
-                family: "Acanthuridae",
-                minSize: 12,
-                maxSize: 31,
-                waterType: "Saltwater",
-                description: "Blue tangs are vibrant reef fish known for their electric blue coloration. They are herbivorous and play an important role in controlling algae growth on coral reefs.",
-                colorDescription: "Brilliant royal blue body with a distinctive yellow tail. Black markings near the eyes create a 'palette' shape, giving them their alternative name.",
-                depthRangeMin: 2,
-                depthRangeMax: 40,
-                environment: "Coral reefs and rocky areas",
-                region: "Indo-Pacific tropical waters",
-                conservationStatus: "Least Concern",
-                consStatusDescription: "While populations are currently stable, blue tangs face pressure from the aquarium trade and habitat loss.",
-                aiAccuracy: 92,
-                captureTimestamp: new Date().toISOString()
-            },
-            imageUrl: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%234A90E2" width="100" height="100"/><circle fill="%23fff" cx="35" cy="40" r="8"/><circle fill="%23000" cx="35" cy="40" r="4"/></svg>',
-            timestamp: new Date().toISOString(),
-            fishId: "2"
-        },
-        3: {
-            fish: {
-                _id: "3",
-                name: "Moorish Idol",
-                family: "Zanclidae",
-                minSize: 15,
-                maxSize: 23,
-                waterType: "Saltwater",
-                description: "Moorish idols are distinctive reef fish with compressed disc-like bodies. They are commonly found around coral reefs and rocky shores in tropical Indo-Pacific waters.",
-                colorDescription: "White body with bold vertical black stripes and a bright yellow dorsal area. Long, flowing dorsal fin filament extends well beyond the body.",
-                depthRangeMin: 3,
-                depthRangeMax: 180,
-                environment: "Coral reefs and rocky shores",
-                region: "Indo-Pacific and Eastern Pacific",
-                conservationStatus: "Least Concern",
-                consStatusDescription: "Moorish idols are widespread and relatively common, though they are sensitive to aquarium conditions and rarely survive in captivity.",
-                aiAccuracy: 88,
-                captureTimestamp: new Date().toISOString()
-            },
-            imageUrl: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23F5D547" width="100" height="100"/><rect fill="%23000" x="20" y="0" width="15" height="100"/><rect fill="%23000" x="50" y="0" width="15" height="100"/></svg>',
-            timestamp: new Date().toISOString(),
-            fishId: "3"
-        }
-    }
-};
+// --- FIXED CONFIG (as requested) ---
+export const API_BASE_URL = 'http://localhost:3000/api';
+export const DEVICE_ID = 'testtest';
 
-async function fetchAPI(endpoint, options = {}) {
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            },
-            ...options
-        });
-        
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        console.warn(`API call to ${endpoint} failed:`, error.message);
-        throw error; // Throw instead of returning null
+const enc = encodeURIComponent;
+
+// ---------- helpers ----------
+async function fetchJSON(url, options = {}) {
+    const res = await fetch(url, options);
+    let json = null;
+    try { json = await res.json(); } catch {}
+    if (!res.ok) {
+        const msg = json?.message || `HTTP ${res.status}`;
+        const err = new Error(msg);
+        err.status = res.status;
+        err.body = json;
+        throw err;
     }
+    return json;
 }
 
-export async function getRecentCatches() {
-    try {
-        const response = await fetchAPI('/catches/recent');
-        
-        // Handle API response structure
-        if (response && response.success && response.data) {
-            return response.data.map(item => ({
-                id: item.fishId || item.fish._id,
-                name: item.fish.name,
-                image: item.imageUrl,
-                time: formatTimestamp(item.timestamp)
-            }));
-        }
-        
-        return MOCK_DATA.recentCatches;
-    } catch (error) {
-        console.warn('Failed to fetch recent catches:', error);
-        return MOCK_DATA.recentCatches;
+/** Safely build /api/fish/image/{imagePath} (supports already-prefixed or absolute URLs) */
+export function encodeImagePath(raw) {
+    if (!raw) return '';
+    if (raw.startsWith('http')) return raw;
+
+    const base = API_BASE_URL.replace(/\/+$/, '');
+    if (raw.startsWith('/api/fish/image/')) {
+        // normalize to this API base
+        return `${base}${raw.replace(/^\/api/, '')}`;
     }
+    // "deviceId/filename.jpg" -> encode each segment
+    return `${base}/fish/image/` + raw.split('/').map(enc).join('/');
 }
 
-export async function getAllCatches() {
-    try {
-        const response = await fetchAPI('/catches');
-        
-        // Handle API response structure
-        if (response && response.success && response.data) {
-            return response.data.map(item => ({
-                id: item.fishId || item.fish._id,
-                name: item.fish.name,
-                image: item.imageUrl,
-                time: formatTimestamp(item.timestamp)
-            }));
-        }
-        
-        return MOCK_DATA.recentCatches;
-    } catch (error) {
-        console.warn('Failed to fetch all catches:', error);
-        return MOCK_DATA.recentCatches;
-    }
+/** Normalize fish list payload from GET /fish/:deviceId */
+function normalizeFishList(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (payload && Array.isArray(payload.data)) return payload.data;
+    return [];
 }
 
-function formatTimestamp(timestamp) {
-    if (!timestamp) return 'Unknown';
-    
-    const now = new Date();
-    const date = new Date(timestamp);
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-export async function getCatchDetails(id) {
-    try {
-        const response = await fetchAPI(`/catches/${id}`);
-        
-        // Handle API response structure
-        if (response && response.success && response.data && response.data.length > 0) {
-            const item = response.data[0];
-            return {
-                id: item.fishId || item.fish._id,
-                name: item.fish.name,
-                image: item.imageUrl,
-                time: formatTimestamp(item.timestamp)
-            };
-        }
-        
-        return MOCK_DATA.recentCatches.find(c => c.id === id);
-    } catch (error) {
-        console.warn('Failed to fetch catch details:', error);
-        return MOCK_DATA.recentCatches.find(c => c.id === id);
-    }
-}
-
-export async function getFishDetails(id) {
-    try {
-        const response = await fetchAPI(`/fish/details/${id}`);
-        
-        // Handle API response structure
-        if (response && response.success && response.data && response.data.length > 0) {
-            return response.data[0]; // Returns { fish: {...}, imageUrl: "...", timestamp: "..." }
-        }
-        
-        // Fallback to mock data
-        return MOCK_DATA.fishDetails[id] || {
-            fish: {
-                _id: id,
-                name: 'Unknown Fish',
-                family: 'Unknown',
-                minSize: 0,
-                maxSize: 0,
-                waterType: 'Unknown',
-                description: 'No information available.',
-                colorDescription: 'No appearance information available.',
-                depthRangeMin: 0,
-                depthRangeMax: 0,
-                environment: 'Unknown',
-                region: 'Unknown',
-                conservationStatus: 'Unknown',
-                aiAccuracy: 0,
-                captureTimestamp: new Date().toISOString()
-            },
-            imageUrl: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23999" width="100" height="100"/></svg>',
-            timestamp: new Date().toISOString(),
-            fishId: id
-        };
-    } catch (error) {
-        console.error('Error fetching fish details:', error);
-        throw error;
-    }
-}
-
-export async function identifyFish(imageFile) {
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    
-    try {
-        const response = await fetchAPI('/fish/identify', {
-            method: 'POST',
-            body: formData,
-            headers: {}
-        });
-        
-        // Handle API response structure
-        if (response && response.success && response.data && response.data.length > 0) {
-            const fishData = response.data[0];
-            return { 
-                id: fishData.fishId || fishData.fish._id,
-                name: fishData.fish.name,
-                confidence: fishData.fish.aiAccuracy / 100
-            };
-        }
-        
-        // Fallback to placeholder with random existing fish ID
-        const randomId = Math.floor(Math.random() * 3) + 1;
-        return { id: randomId, name: 'Identified Fish', confidence: 0.85 };
-    } catch (error) {
-        console.error('Error identifying fish:', error);
-        // Return placeholder on error
-        const randomId = Math.floor(Math.random() * 3) + 1;
-        return { id: randomId, name: 'Identified Fish', confidence: 0.85 };
-    }
-}
-
-export async function sendChatMessage(message) {
-    const data = await fetchAPI('/chat', {
-        method: 'POST',
-        body: JSON.stringify({ message })
-    });
-    
-    return data || { 
-        reply: `You asked about: "${message}". This is a placeholder response from the AI assistant.` 
+/** Map backend entry to a UI-friendly card shape (keep original in .raw) */
+function toUiCard(entry) {
+    const fish = entry.fish && typeof entry.fish === 'object' ? entry.fish : entry;
+    const imageRaw = entry.imageUrl || fish.imageUrl || '';
+    return {
+        id: entry.fishId || fish._id || entry._id || '',
+        name: fish.name || 'Unknown',
+        family: fish.family || '',
+        waterType: fish.waterType || '',
+        region: fish.region || '',
+        environment: fish.environment || '',
+        conservationStatus: fish.conservationStatus || '',
+        minSize: fish.minSize ?? null,
+        maxSize: fish.maxSize ?? null,
+        depthRangeMin: fish.depthRangeMin ?? null,
+        depthRangeMax: fish.depthRangeMax ?? null,
+        aiAccuracy: fish.aiAccuracy ?? null,
+        createdAt: fish.createdAt || entry.timestamp || entry.createdAt || '',
+        imageUrl: imageRaw ? encodeImagePath(imageRaw) : '',
+        raw: entry
     };
 }
 
+/** Pretty “x ago” helper (optional for UI) */
+export function formatTimestamp(ts) {
+    if (!ts) return 'Unknown';
+    const now = new Date();
+    const d = new Date(ts);
+    const diff = now - d;
+    if (diff < 0) return d.toLocaleString();
+    const mins = Math.floor(diff / 60000);
+    const hrs  = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (mins < 60) return `${mins}m ago`;
+    if (hrs  < 24) return `${hrs}h ago`;
+    if (days < 7)  return `${days}d ago`;
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+// ---------- DEVICE ENDPOINTS ----------
+/** POST /device/register  body: { deviceId } */
+export async function registerDevice(deviceId = DEVICE_ID) {
+    const url = `${API_BASE_URL}/device/register`;
+    return fetchJSON(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId })
+    });
+}
+
+/** GET /device/:id */
+export async function getDevice(deviceId = DEVICE_ID) {
+    const url = `${API_BASE_URL}/device/${enc(deviceId)}`;
+    return fetchJSON(url, { method: 'GET' });
+}
+
+// ---------- FISH ENDPOINTS ----------
+/** GET /fish/:deviceId -> array normalized to UI cards */
+export async function getFishByDevice(deviceId = DEVICE_ID) {
+    const url = `${API_BASE_URL}/fish/${enc(deviceId)}`;
+    const payload = await fetchJSON(url, { method: 'GET' });
+    const list = normalizeFishList(payload);
+    return list.map(toUiCard);
+}
+
+/** Convenience: latest N cards from device list */
+export async function getRecentCatches(limit = 6, deviceId = DEVICE_ID) {
+    const all = await getFishByDevice(deviceId);
+    const sorted = [...all].sort((a, b) => {
+        const ta = new Date(a.createdAt || 0).getTime();
+        const tb = new Date(b.createdAt || 0).getTime();
+        return tb - ta;
+    });
+    return sorted.slice(0, limit);
+}
+
+/** GET /fish/name/:fishName  -> check by name */
+export async function checkFishByName(fishName) {
+    const url = `${API_BASE_URL}/fish/name/${enc(fishName)}`;
+    return fetchJSON(url, { method: 'GET' });
+}
+
+/** POST /fish/add-existing/:deviceId/:fishName  body: { imageUrl } */
+export async function addExistingFishToDevice(deviceId, fishName, imageUrl) {
+    const url = `${API_BASE_URL}/fish/add-existing/${enc(deviceId)}/${enc(fishName)}`;
+    return fetchJSON(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl })
+    });
+}
+
+/** POST /fish/upload  (multipart: deviceId + file) */
+export async function identifyFish(imageFile, deviceId = DEVICE_ID) {
+    const url = `${API_BASE_URL}/fish/upload`;
+    const fd = new FormData();
+    fd.append('deviceId', deviceId);
+    fd.append('file', imageFile, imageFile.name || 'upload.jpg');
+
+    // Don't set Content-Type for FormData — browser handles it
+    const res = await fetch(url, { method: 'POST', body: fd });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        const msg = json?.message || `HTTP ${res.status}`;
+        const err = new Error(`Upload failed: ${msg}`);
+        err.status = res.status;
+        err.body = json;
+        throw err;
+    }
+    return json; // { success, message, deviceId, fileMeta, fish: {...} }
+}
+
+/** Helper: derive a single fish entry by ID from the device list */
+export async function getCatchDetails(fishId, deviceId = DEVICE_ID) {
+    const all = await getFishByDevice(deviceId);
+    return all.find(x => String(x.id) === String(fishId)) || null;
+}
+
+/** Alias for details page parity */
+export async function getFishDetails(fishId, deviceId = DEVICE_ID) {
+    return getCatchDetails(fishId, deviceId);
+}
+
+// ---------- CHAT ----------
+/** POST /chat/:deviceId  body: { message } */
+export async function sendChatMessage(message, deviceId = DEVICE_ID) {
+    const url = `${API_BASE_URL}/chat/${enc(deviceId)}`;
+    return fetchJSON(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+    });
+}
+
+// ---------- DEFAULT EXPORT ----------
 export default {
+    API_BASE_URL,
+    DEVICE_ID,
+    encodeImagePath,
+    formatTimestamp,
+
+    // Device
+    registerDevice,
+    getDevice,
+
+    // Fish
+    getFishByDevice,
     getRecentCatches,
-    getAllCatches,
+    checkFishByName,
+    addExistingFishToDevice,
+    identifyFish,
     getCatchDetails,
     getFishDetails,
-    identifyFish,
-    sendChatMessage
+
+    // Chat
+    sendChatMessage,
 };
