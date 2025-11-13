@@ -23,13 +23,11 @@ export async function init() {
         return;
     }
 
-    // Update stats
     document.getElementById('totalCatches').textContent = catches.length;
     
     const uniqueSpecies = new Set(catches.map(c => c.name)).size;
     document.getElementById('uniqueSpecies').textContent = uniqueSpecies;
 
-    // Render gallery
     galleryGrid.innerHTML = catches.map((fish, index) => `
         <div class="fish-card" data-id="${fish.id}">
             <img class="fish-card-image" src="${fish.image}" alt="${fish.name}">
@@ -40,7 +38,6 @@ export async function init() {
         </div>
     `).join('');
     
-    // Add click listeners
     galleryGrid.querySelectorAll('.fish-card').forEach(card => {
         card.addEventListener('click', () => {
             const id = parseInt(card.dataset.id);
