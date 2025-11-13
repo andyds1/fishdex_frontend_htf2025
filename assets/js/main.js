@@ -1,4 +1,4 @@
-// Router - loads appropriate module based on current page
+// Router - Just Plain JS Works - Who needs Express or some fancy React stuff anyways
 
 const pageModules = {
     'index.html': () => import('./pages/home.js'),
@@ -16,7 +16,6 @@ async function initApp() {
         try {
             const module = await loader();
             
-            // Expose module functions globally
             if (module.goBack) window.goBack = module.goBack;
             if (module.goToUpload) window.goToUpload = module.goToUpload;
             if (module.goToChat) window.goToChat = module.goToChat;
@@ -25,7 +24,6 @@ async function initApp() {
             if (module.sendMessage) window.sendMessage = module.sendMessage;
             if (module.handleKeyPress) window.handleKeyPress = module.handleKeyPress;
             
-            // Initialize page
             if (module.init) {
                 await module.init();
             }
@@ -35,7 +33,7 @@ async function initApp() {
     }
 }
 
-// Auto-init
+// Fallback
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
