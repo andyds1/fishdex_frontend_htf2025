@@ -1,6 +1,5 @@
 import { getRecentCatches, getCatchDetails } from '../data/fetcher.js';
 
-// Navigation functions
 export function goToUpload() {
     window.location.href = 'upload.html';
 }
@@ -14,7 +13,6 @@ export function goToGallery(e) {
     window.location.href = 'gallery.html';
 }
 
-// Display fish cards
 function renderCatches(catches) {
     const grid = document.getElementById('fishGrid');
     if (!grid) return;
@@ -29,7 +27,6 @@ function renderCatches(catches) {
         </div>
     `).join('');
     
-    // Add click listeners
     grid.querySelectorAll('.fish-card').forEach(card => {
         card.addEventListener('click', () => {
             const id = parseInt(card.dataset.id);
@@ -38,7 +35,6 @@ function renderCatches(catches) {
     });
 }
 
-// View fish details
 async function viewDetails(id) {
     const fish = await getCatchDetails(id);
     alert(`${fish.name}\nID: ${fish.id}`);
